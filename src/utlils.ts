@@ -121,12 +121,26 @@ export function getTsFromObject(path: string) {
         return objTypes;
       }
 
-      for (const key in obj) {
-        const item = obj[key];
-        _interface = { ..._interface, ...getTypes(item, key) };
+      const isArray = Array.isArray(obj)
+      
+      if(!isArray) {
+        for (const key in obj) {
+          const item = obj[key];
+          _interface = { ..._interface, ...getTypes(item, key) };
+        }
+      } else {
+        let arrayType = []
+        for(const index in obj) {
+          const reType = getTypes(obj[index], index)[index]
+          arrayType.push(reType)
+        }
+        arrayType = [...new Set(arrayType)]
+        _interface = {..._interface, IArray: arrayType.join('|') + "[]"}
       }
 
-      let str = JSON.stringify(_interface)
+
+      // @ts-ignore
+      let str = JSON.stringify(isArray? _interface['IArray'] : _interface)
         .replace(/\"/gi, "")
         .replace(",", ";");
       return str;
